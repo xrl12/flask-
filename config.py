@@ -5,12 +5,24 @@ class Config(object):
     SQLALCHEMY_TRACK_MODIFICATIONS = True
 
     # 查询时会显示原始SQL语句
-    SQLALCHEMY_ECHO = True
+    SQLALCHEMY_ECHO = False
+
+    # 对管理后台进行汉化
+    BABEL_DEFAULT_LOCALE = 'zh_CN'
 
     # 小程序配置
     APPSECRET = '31136dd4dea8551834b76a75f4a07ad6'
     APPID = 'wxe0632a1e3ec5281f'
 
+    # session配置
+    SECRET_KEY = 'sjdfasfsadfadksfjasdl'
+
+    #返回图片的绝对地址
+    DOMAIN = 'http://127.0.0.1:5000/static/'
+
+
+    # 验证图片的合法性
+    IMG_FORMAT = ['png','jpeg','jpg','gif']
 
 class Product(Config):  # 线上的
     DEBUG = False

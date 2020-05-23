@@ -3,7 +3,8 @@ import requests
 from flask import request, current_app, jsonify
 
 from app.libs.redprint import RedPrint
-
+from app.models.food import *
+from app.utils.common import get_img_abs
 api = RedPrint(name='foods', description='商品模型')  # 传入两个参数，一个是路由，一个是对红图的描述
 
 
@@ -14,18 +15,21 @@ def banners():
         'msg': 'OK',
         'data': {}
     }
-    banners = [
-        {
-            'id': 1,
-            'pic_url': 'https://timgsa.baidu.com/timg?image&quality=80&size=b9999_10000&sec=1589999926675&di=1f3cc52857073639ff25cb92b4a2767e&imgtype=0&src=http%3A%2F%2Fpic1.16pic.com%2F00%2F53%2F45%2F16pic_5345901_b.jpg'
-        }, {
-            'id': 2,
-            'pic_url': 'https://timgsa.baidu.com/timg?image&quality=80&size=b9999_10000&sec=1589999926675&di=1f3cc52857073639ff25cb92b4a2767e&imgtype=0&src=http%3A%2F%2Fpic1.16pic.com%2F00%2F53%2F45%2F16pic_5345901_b.jpg'
-        }, {
-            'id': 3,
-            'pic_url': 'https://timgsa.baidu.com/timg?image&quality=80&size=b9999_10000&sec=1589999926675&di=1f3cc52857073639ff25cb92b4a2767e&imgtype=0&src=http%3A%2F%2Fpic1.16pic.com%2F00%2F53%2F45%2F16pic_5345901_b.jpg'
-        }
-    ]
+    foods = Food.query.limit(3).all()
+    banners = [{'id':food.id,'pic_url':get_img_abs(food.main_image)} for food in foods]
+    print(banners)
+    # banners = [
+    #     {
+    #         'id': 1,
+    #         'pic_url': 'https://timgsa.baidu.com/timg?image&quality=80&size=b9999_10000&sec=1589999926675&di=1f3cc52857073639ff25cb92b4a2767e&imgtype=0&src=http%3A%2F%2Fpic1.16pic.com%2F00%2F53%2F45%2F16pic_5345901_b.jpg'
+    #     }, {
+    #         'id': 2,
+    #         'pic_url': 'https://timgsa.baidu.com/timg?image&quality=80&size=b9999_10000&sec=1589999926675&di=1f3cc52857073639ff25cb92b4a2767e&imgtype=0&src=http%3A%2F%2Fpic1.16pic.com%2F00%2F53%2F45%2F16pic_5345901_b.jpg'
+    #     }, {
+    #         'id': 3,
+    #         'pic_url': 'https://timgsa.baidu.com/timg?image&quality=80&size=b9999_10000&sec=1589999926675&di=1f3cc52857073639ff25cb92b4a2767e&imgtype=0&src=http%3A%2F%2Fpic1.16pic.com%2F00%2F53%2F45%2F16pic_5345901_b.jpg'
+    #     }
+    # ]
     ctx['data']['banners'] = banners
     return jsonify(ctx)
 
