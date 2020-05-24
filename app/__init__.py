@@ -20,11 +20,12 @@ def create_app(config):
     app.register_blueprint(createBluePrint())  # 注册蓝图
 
     # 添加管理后台
-    from .models.food import Food, Category
-    from app.admin.modelview import FModelview
+    from .models.food import Food, Category,FoodImg
+    from app.admin.modelview import FModelview,ImgModelview
     admin = Admin(app, name='管理后台', template_mode='bootstrap3', base_template='admin/mybase.html')  # 此行新加
     admin.add_view(FModelview(Food, db.session, name='食品'))  # 第一个传入的是模型类，第二个传入的是db_session，第三个传入的是网页的title
     admin.add_view(ModelView(Category, db.session, name='食品分类'))
+    admin.add_view(ImgModelview(FoodImg,db.session,name='商品详情图片'))
     # 对管理后台进行汉化
     babel = Babel(app=app)
 

@@ -37,6 +37,7 @@ class Food(BaseModel, db.Model):
     total_count = db.Column(db.Integer, nullable=False, default=0)  # 总销售量
     view_count = db.Column(db.Integer, nullable=False, default=0)  # 浏览次数
     comment_count = db.Column(db.Integer, nullable=False, default=0)  # 总评论量
+    min_price = db.Column(db.Integer, nullable=False, default=0, comment='最低价格')  # 最低价格
 
     cat_id = db.Column(db.Integer, db.ForeignKey('category.id'), nullable=False)
 
@@ -47,3 +48,16 @@ class Food(BaseModel, db.Model):
 
     def getStatus(self):
         return True if self.status == 1 else False
+
+    def __str__(self):
+        return self.name
+
+
+class FoodImg(BaseModel, db.Model):
+    __tablename__ = 'food_img'
+    id = db.Column(db.Integer, primary_key=True, comment='id唯一值')
+    fid = db.Column(db.Integer, db.ForeignKey('food.id'), comment='商品id')
+    img = db.Column(db.String(100), nullable=False, comment='商品图片')
+    status = db.Column(db.Integer, default=1, comment="1表示激活，0表示没有激活")
+
+    detail_img = db.relationship(Food, backref='imgs')

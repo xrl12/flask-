@@ -9,7 +9,9 @@ from flask import redirect, request, url_for, render_template, flash
 def login():
     form = LoginForm()
     if form.validate_on_submit():
+        print(form.username.data)
         user = User.query.filter_by(username=form.username.data).first()
+        print(user)
         if user is not None:
             flag = User.verity_password(form.password.data, user.password_hash)
             if flag:
@@ -26,13 +28,3 @@ def logout():
     flash("退出成功！")
     return redirect(url_for('admin.login'))
 
-
-# @admin_page.route('/adfa')
-# def index():
-#     return 'adfasfsdafasda'
-
-
-@admin_page.route("abc")
-def reverse():
-    print('adfasfads')
-    return redirect(url_for('admin.index'))

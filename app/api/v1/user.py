@@ -46,11 +46,11 @@ def user():
             pass
     member = oauthmemberbind.member
     geneAuthCode = MemberService.geneAuthCode(member)
-    ctx['data']['token'] = '%s # %s' % (member.id, geneAuthCode)
+    ctx['data']['token'] = '%s#%s' % (member.id, geneAuthCode)
     return jsonify(ctx)
 
 
-@api.route('/checklogin', methods=['POST','GET'])
+@api.route('/checklogin', methods=['POST', 'GET'])
 def checklogin():
     ctx = {
         'code': '1',
@@ -67,5 +67,7 @@ def checklogin():
     if not oauthmemberbind:
         ctx['code'] = -1
         ctx['msg'] = '没有用户信息'
+    member = oauthmemberbind.member
+    geneAuthCode = MemberService.geneAuthCode(member)
+    ctx['data']['token'] = '%s#%s' % (member.id, geneAuthCode)
     return jsonify(ctx)
-

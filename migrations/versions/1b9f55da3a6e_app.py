@@ -1,8 +1,8 @@
-"""'test'
+"""'app'
 
-Revision ID: 5d15e483e135
+Revision ID: 1b9f55da3a6e
 Revises: 
-Create Date: 2020-05-22 08:52:47.777878
+Create Date: 2020-05-23 15:01:49.154177
 
 """
 from alembic import op
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = '5d15e483e135'
+revision = '1b9f55da3a6e'
 down_revision = None
 branch_labels = None
 depends_on = None
@@ -69,6 +69,7 @@ def upgrade():
     sa.Column('total_count', sa.Integer(), nullable=False),
     sa.Column('view_count', sa.Integer(), nullable=False),
     sa.Column('comment_count', sa.Integer(), nullable=False),
+    sa.Column('min_price', sa.Integer(), nullable=False, comment='最低价格'),
     sa.Column('cat_id', sa.Integer(), nullable=False),
     sa.ForeignKeyConstraint(['cat_id'], ['category.id'], ),
     sa.PrimaryKeyConstraint('id')

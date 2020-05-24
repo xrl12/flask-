@@ -23,10 +23,7 @@ class MyModelView(ModelView):
 
     def inaccessible_callback(self, name, **kwargs):
         # redirect to login page if user doesn't have access
-        print('-----------------------------fadsfasdfadsfasd')
-        # return redirect(url_for('admin.login', next=request.url))
-        return redirect(url_for('admin.index',next=request.url))
-        # return redirect('http://127.0.0.1:5000/admin/login')
+        return redirect(url_for('admin.index', next=request.url))
 
 
 class UModelview(MyModelView):
@@ -133,8 +130,6 @@ class FModelview(MyModelView):
 
         return model
 
-    def on_model_change(self, form, model, is_created):
-        print(form.main_image.data.filename)
 
     # 重写更新方法
     def update_model(self, form, model):
@@ -147,8 +142,114 @@ class FModelview(MyModelView):
                 Model instance
         """
         try:
-            img = form.main_image.data.filename.split('.')[-1]
-            form.main_image.data.filename = str(uuid1()) + '.' + img
+            try:
+                img = form.main_image.data.filename.split('.')[-1]
+                form.main_image.data.filename = str(uuid1()) + '.' + img
+            except Exception as e:
+                pass
+            form.populate_obj(model)
+            self._on_model_change(form, model, False)
+            self.session.commit()
+        except Exception as ex:
+            if not self.handle_view_exception(ex):
+                flash(gettext('Failed to update record. %(error)s', error=str(ex)), 'error')
+                log.exception('Failed to update record.')
+
+            self.session.rollback()
+
+            return False
+        else:
+            self.after_model_change(form, model, False)
+
+        return True
+
+
+class ImgModelview(ModelView):
+    column_labels = {
+        'fid': '食品id',
+        'status': '是否激活',
+        'img': '图片',
+        'detail_img': '商品id'
+    }
+
+    def get_img(view, context, model, name):
+        if not model.img:
+            return ''
+
+        return Markup('<img src="%s">' % url_for('static',
+                                                 filename=model.img))
+
+    column_formatters = {
+        'img': get_img
+    }
+
+    # Alternative way to contribute field is to override it completely.
+    # In this case, Flask-Admin won't attempt to merge various parameters for the field.
+    form_extra_fields = {
+        'img': form.ImageUploadField('Image',
+                                     base_path=file_path,
+                                     relative_path="uploadfile/foodinfo/")
+    }
+
+    # 重写创建方法
+    def create_model(self, form):
+        """
+            Create model from form.
+
+            :param form:
+                Form instance
+        """
+        try:
+            model = self._manager.new_instance()
+            # TODO: We need a better way to create model instances and stay compatible with
+            # SQLAlchemy __init__() behavior
+            state = instance_state(model)
+            self._manager.dispatch.init(state, [], {})
+            try:
+                image = form.img.data.filename
+                img_format = image[image.rfind('.') + 1:]
+                if img_format not in current_app.config['IMG_FORMAT']:
+                    flash(gettext('图片不合法', error=str('图片不合法')), 'error')
+                    self.session.rollback()
+                    return False
+                form.img.data.filename = str(uuid1()) + '.' + img_format
+            except Exception as e:
+                pass
+            form.populate_obj(model)
+            self.session.add(model)
+
+            self._on_model_change(form, model, True)
+            self.session.commit()
+
+        except Exception as ex:
+            if not self.handle_view_exception(ex):
+                flash(gettext('Failed to create record. %(error)s', error=str(ex)), 'error')
+                log.exception('Failed to create record.')
+
+            self.session.rollback()
+
+            return False
+        else:
+            self.after_model_change(form, model, True)
+
+        return model
+
+    # 重写更新方法
+    def update_model(self, form, model):
+        """
+            Update model from form.
+
+            :param form:
+                Form instance
+            :param model:
+                Model instance
+        """
+        try:
+            try:
+                img = form.img.data.filename.split('.')[-1]
+                form.img.data.filename = str(uuid1()) + '.' + img
+            except Exception as e:
+                pass
             form.populate_obj(model)
             self._on_model_change(form, model, False)
             self.session.commit()

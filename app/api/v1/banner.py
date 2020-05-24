@@ -1,10 +1,11 @@
 import requests
-
+from time import sleep
 from flask import request, current_app, jsonify
 
 from app.libs.redprint import RedPrint
 from app.models.food import *
 from app.utils.common import get_img_abs
+
 api = RedPrint(name='foods', description='商品模型')  # 传入两个参数，一个是路由，一个是对红图的描述
 
 
@@ -15,21 +16,10 @@ def banners():
         'msg': 'OK',
         'data': {}
     }
-    foods = Food.query.limit(3).all()
-    banners = [{'id':food.id,'pic_url':get_img_abs(food.main_image)} for food in foods]
+    foods = Food.query.filter_by(status=1).limit(3).all()
+    banners = [{'id': food.id, 'pic_url': get_img_abs(food.main_image)} for food in foods]
+
     print(banners)
-    # banners = [
-    #     {
-    #         'id': 1,
-    #         'pic_url': 'https://timgsa.baidu.com/timg?image&quality=80&size=b9999_10000&sec=1589999926675&di=1f3cc52857073639ff25cb92b4a2767e&imgtype=0&src=http%3A%2F%2Fpic1.16pic.com%2F00%2F53%2F45%2F16pic_5345901_b.jpg'
-    #     }, {
-    #         'id': 2,
-    #         'pic_url': 'https://timgsa.baidu.com/timg?image&quality=80&size=b9999_10000&sec=1589999926675&di=1f3cc52857073639ff25cb92b4a2767e&imgtype=0&src=http%3A%2F%2Fpic1.16pic.com%2F00%2F53%2F45%2F16pic_5345901_b.jpg'
-    #     }, {
-    #         'id': 3,
-    #         'pic_url': 'https://timgsa.baidu.com/timg?image&quality=80&size=b9999_10000&sec=1589999926675&di=1f3cc52857073639ff25cb92b4a2767e&imgtype=0&src=http%3A%2F%2Fpic1.16pic.com%2F00%2F53%2F45%2F16pic_5345901_b.jpg'
-    #     }
-    # ]
     ctx['data']['banners'] = banners
     return jsonify(ctx)
 
@@ -41,12 +31,9 @@ def category():
         'msg': 'OK',
         'data': {}
     }
-    categorys = [
-        {'id': 0, 'name': "全部"},
-        {'id': 1, 'name': "川菜"},
-        {'id': 2, 'name': "湘菜"},
-        {'id': 3, 'name': "卤菜"}
-    ]
+    categorys = Category.query.all()
+    categorys = [{'id': category.id, 'name': category.name} for category in categorys]
+    categorys.insert(0, {'id': 0, "name": "全部"})
     ctx['data']['categorys'] = categorys
     return jsonify(ctx)
 
@@ -56,38 +43,67 @@ def list():
     ctx = {
         'code': 1,
         'msg': 'OK',
+        'data': {},
+        'ismore': 1
+    }
+    try:
+        cid = int(request.args.get('cid'))
+        page = int(request.args.get("page"))
+        if cid == 0:
+            fs = Food.query.filter_by(status=1)
+        else:
+            fs = Food.query.filter_by(cat_id=cid, status=1)
+
+        if page < 1:
+            page = 1
+        pagesize = 1  # 每页展示多少个
+        offset = (page - 1) * pagesize
+        fs = fs.offset(offset).limit(pagesize).all()
+        if len(fs) <= 0:
+            ctx['ismore'] = 0
+        foods = []
+        for food in fs:
+            temp = {}
+            temp['id'] = food.id
+            temp['name'] = food.name
+            temp['min_price'] = food.min_price
+            temp['price'] = round(float(food.price) * 0.8, 2)
+            temp['pic_url'] = get_img_abs(food.main_image)
+            foods.append(temp)
+
+        ctx['data']['goods'] = foods
+    except Exception as e:
+        print(e)
+        ctx['code'] = -1
+        ctx['msg'] = '参数错误'
+    return jsonify(ctx)
+
+
+@api.route('/info', methods=['GET'])
+def info():
+    ctx = {
+        'code': 1,
+        'msg': 'ok',
         'data': {}
     }
-    goods = [
-        {
-            "id": 1,
-            "name": "小鸡炖蘑菇-1",
-            "min_price": "1500.00",
-            "price": "1500.00",
-            "pic_url": "https://ss1.bdstatic.com/70cFvXSh_Q1YnxGkpoWK1HF6hhy/it/u=1204370716,2143384209&fm=26&gp=0.jpg"
-        },
-        {
-            "id": 2,
-            "name": "小鸡炖蘑菇-1",
-            "min_price": "1500.00",
-            "price": "1500.00",
-            "pic_url": "https://ss1.bdstatic.com/70cFvXSh_Q1YnxGkpoWK1HF6hhy/it/u=1204370716,2143384209&fm=26&gp=0.jpg"
-        },
-        {
-            "id": 3,
-            "name": "小鸡炖蘑菇-1",
-            "min_price": "1500.00",
-            "price": "1500.00",
-            "pic_url": "https://ss1.bdstatic.com/70cFvXSh_Q1YnxGkpoWK1HF6hhy/it/u=1204370716,2143384209&fm=26&gp=0.jpg"
-        },
-        {
-            "id": 4,
-            "name": "小鸡炖蘑菇-1",
-            "min_price": "1500.00",
-            "price": "1500.00",
-            "pic_url": "https://ss1.bdstatic.com/70cFvXSh_Q1YnxGkpoWK1HF6hhy/it/u=1204370716,2143384209&fm=26&gp=0.jpg"
+    try:
+        id = request.args.get('id')
+        food = Food.query.get(id)
+        imgs = food.imgs
+        info = {
+            "id": food.id,
+            "name": food.name,
+            "summary": food.summary,
+            "total_count": food.total_count,
+            "comment_count": food.comment_count,
+            "stock": food.stock,
+            "price": str(food.price),
+            "main_image": food.main_image,
+            "pics": [get_img_abs(str(img.img)) for img in imgs]
         }
+        ctx['data']['info'] = info
+    except Exception as e:
+        ctx['code'] = -1
+        ctx['msg'] = '参数错误'
 
-    ]
-    ctx['data']['goods'] = goods
     return jsonify(ctx)
