@@ -3,20 +3,17 @@
   <component name="ChangeListManager">
     <list default="true" id="4c0fc4a5-e86c-428b-ad2b-bfb33d4d85c6" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/app/__init__.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/admin/modelview.py" beforeDir="false" afterPath="$PROJECT_DIR$/app/admin/modelview.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/admin/views.py" beforeDir="false" afterPath="$PROJECT_DIR$/app/admin/views.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/app/api/v1/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/app/api/v1/__init__.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/api/v1/banner.py" beforeDir="false" afterPath="$PROJECT_DIR$/app/api/v1/banner.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/api/v1/cars.py" beforeDir="false" afterPath="$PROJECT_DIR$/app/api/v1/cars.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/app/api/v1/user.py" beforeDir="false" afterPath="$PROJECT_DIR$/app/api/v1/user.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/models/food.py" beforeDir="false" afterPath="$PROJECT_DIR$/app/models/food.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/static/uploadfile/932b98fe-9c8b-11ea-a62b-00f48d398fe6.jpg" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/static/uploadfile/f4747f34-9c96-11ea-ab41-00f48d398fe6.jpg" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/migrations/README" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/migrations/alembic.ini" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/migrations/env.py" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/migrations/script.py.mako" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/migrations/versions/5d15e483e135_test.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/migrations/versions/1b9f55da3a6e_app.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/migrations/versions/47b10d5cecd7_addcars.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/migrations/versions/8d367cad8e7e_addinfo.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/migrations/versions/ad2521f5ed4d_.py" beforeDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -45,15 +42,15 @@
     <property name="settings.editor.selected.configurable" value="Errors" />
   </component>
   <component name="RecentsManager">
-    <key name="CopyFile.RECENT_KEYS">
-      <recent name="D:\Desktop\10_waimai_flask\app\libs" />
-    </key>
     <key name="MoveFile.RECENT_KEYS">
+      <recent name="D:\Desktop\10_waimai_flask\app\api\v1" />
       <recent name="D:\Desktop\10_waimai_flask\app" />
       <recent name="D:\Desktop\10_waimai_flask\app\utils" />
       <recent name="D:\Desktop\10_waimai_flask\app\models" />
       <recent name="D:\Desktop\10_waimai_flask" />
-      <recent name="D:\Desktop\10_waimai_flask\app\api\v1" />
+    </key>
+    <key name="CopyFile.RECENT_KEYS">
+      <recent name="D:\Desktop\10_waimai_flask\app\libs" />
     </key>
   </component>
   <component name="RunDashboard">
@@ -107,6 +104,10 @@
       <workItem from="1590214919012" duration="11172000" />
       <workItem from="1590233037385" duration="12700000" />
       <workItem from="1590279866883" duration="584000" />
+      <workItem from="1590310852370" duration="646000" />
+      <workItem from="1590388722182" duration="14180000" />
+      <workItem from="1590448964569" duration="9062000" />
+      <workItem from="1590495593296" duration="6260000" />
     </task>
     <servers />
   </component>

@@ -21,10 +21,12 @@ def user():
     nickname = request.form.get('nickName')
     avatarurl = request.form.get('avatarUrl')
     openid = MemberService.getOpenid(code=code)
+
     if not openid:
         ctx['code'] = -1
         ctx['msg'] = '获取openid失败'
         return jsonify(ctx)
+    print('----------------------------{}'.format(openid))
     oauthmemberbind = OauthMemberBind.query.filter_by(openid=openid).first()
     if not oauthmemberbind:
         try:
