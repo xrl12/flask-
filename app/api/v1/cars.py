@@ -36,15 +36,19 @@ def cars():
         if not member:
             ctx['code'] = -1
             ctx['msg'] = '找不到用户'
+            return jsonify(ctx)
         elif int(nums) < 1:
             ctx['code'] = -1
             ctx['msg'] = '购买不能小于一'
+            return jsonify(ctx)
         elif int(nums) > food.stock:
             ctx['code'] = -1
             ctx['msg'] = '购买数量不能大于现有数量'
+            return jsonify(ctx)
         elif not Food.query.get(shop_id):
             ctx['code'] = -1
             ctx['msg'] = '没有这个商品'
+            return jsonify(ctx)
         else:
             try:
                 if membercart:
@@ -77,7 +81,12 @@ def get_list():
         'data': {}
     }
     token = request.headers.get('token')
-    uid, token = token.split("#")
+    try:
+        uid, token = token.split("#")
+    except Exception as e:
+        ctx['code'] = -1
+        ctx['msg'] = '没有token'
+        return jsonify(ctx)
     member = Member.query.get(uid)
     token1 = MemberService.geneAuthCode(member)
     membercarts = MemberCart.query.filter_by(member_id=uid).all()
@@ -91,7 +100,7 @@ def get_list():
         temp['pic_url'] = get_img_abs(food.main_image)
         temp['name'] = food.name
         temp['price'] = float(food.price)
-        temp['activate'] = True  # 是否选中
+        temp['active'] = True  # 是否选中
         temp['number'] = membercart.quantity
         car_list.append(temp)
         totalPrice += int(membercart.quantity) * round(food.price, 2)
@@ -150,6 +159,7 @@ def plus():
     return jsonify(ctx)
 
 
+# 删除购物车
 @api.route('/del', methods=['POST'])
 def delete():
     ctx = {
@@ -169,4 +179,40 @@ def delete():
         membercar = MemberCart.query.filter_by(id=id).first()
         db.session.delete(membercar)
         db.session.commit()
+    return jsonify(ctx)
+
+
+# 在购物车取消当前选中状态
+@api.route('/calcel')
+def cacelChoise():
+    ctx = {
+        'code': 1,
+        'msg': 'OK',
+        'data': {}
+    }
+    token = request.headers.get('token')
+    try:
+        uid, token = token.split("#")
+    except Exception as e:
+        ctx['code'] = -1
+        ctx['msg'] = '没有token'
+        return jsonify(ctx)
+    member = Member.query.get(uid)
+    token1 = MemberService.geneAuthCode(member)
+    print(request.args.get('car'))
+    car = request.args.get('car')
+    membercart = MemberCart.query.get(car)
+    if not membercart:
+        ctx['code'] = -1
+        ctx['msg'] = '参数错误'
+        return jsonify(ctx)
+    food = Food.query.get(membercart.food_id)
+    totalPrice = 0
+    totalPrice += int(membercart.quantity) * round(food.price, 2)
+    if token != token1:
+        ctx['code'] = -1
+        ctx['msg'] = 'token错误'
+        return jsonify(ctx)
+    ctx['data']['totalPrice'] = str(totalPrice)
+    print(ctx)
     return jsonify(ctx)

@@ -1,5 +1,5 @@
 from flask import Blueprint
-from . import user, banner, cars, order
+from . import user, banner, cars, order, address, comment
 
 
 def createBluePrint():
@@ -8,4 +8,6 @@ def createBluePrint():
     banner.api.register(dp)
     order.api.register(dp)
     cars.api.register(dp)
+    address.api.register(dp)
+    comment.api.register(dp)
     return dp

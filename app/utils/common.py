@@ -88,3 +88,20 @@ from flask import current_app
 def get_img_abs(path):
     domain = current_app.config['DOMAIN']
     return domain + path
+
+
+import hashlib
+import time
+import random
+
+
+def geneOrderSn(PayOrder):
+    m = hashlib.md5()
+    sn = None
+    while True:
+        str = "%s-%s" % (int(round(time.time() * 1000)), random.randint(0, 9999999))
+        m.update(str.encode("utf-8"))
+        sn = m.hexdigest()
+        if not PayOrder.query.filter_by(order_sn=sn).first():
+            break
+    return sn

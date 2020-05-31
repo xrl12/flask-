@@ -67,7 +67,7 @@ def list():
             temp['id'] = food.id
             temp['name'] = food.name
             temp['min_price'] = food.min_price
-            temp['price'] = round(float(food.price) * 0.8, 2)
+            temp['price'] = str(food.price)
             temp['pic_url'] = get_img_abs(food.main_image)
             foods.append(temp)
 
