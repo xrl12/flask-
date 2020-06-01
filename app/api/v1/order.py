@@ -44,9 +44,18 @@ def info():
     try:
         ids = eval(foods_id)
     except Exception as e:
+        print(e)
         ctx['code'] = -1
         ctx['msg'] = '参数错误'
         return jsonify(ctx)
+    flag = request.form.get('flag')  # 用来区分从购车车来的，还是从商品页来的
+    if flag == '1':
+        try:
+            num = int(request.form.get('nums'))
+        except Exception as e:
+            ctx['code'] = -1
+            ctx['msg'] = '参数错误'
+            return jsonify(ctx)
     pay_price = 0
     food_list = []
     for id in ids:
@@ -57,9 +66,15 @@ def info():
         temp['name'] = food.name
         temp['price'] = str(food.price)
         temp['pic_url'] = get_img_abs(food.main_image)
-        temp['number'] = membercar.quantity
+        if flag == '1':
+            temp['number'] = num
+        else:
+            temp['number'] = membercar.quantity
         food_list.append(temp)
-        pay_price += membercar.quantity * food.price
+        if flag == '1':
+            pay_price = food.price * num
+        else:
+            pay_price += membercar.quantity * food.price
 
     memberaddress = MemberAddress.query.filter_by(member_id=member.id, is_default=1).first()
     if memberaddress:
@@ -86,104 +101,143 @@ def info():
 
 @api.route('/create', methods=['POST'])
 def create():
-    try:
-        ctx = {
-            'code': 1,
-            'msg': 'ok',
-            'data': {}
-        }
+    # try:
+    ctx = {
+        'code': 1,
+        'msg': 'ok',
+        'data': {}
+    }
 
-        # 进行token判断
-        token = request.headers.get('token')
+    # 进行token判断
+    token = request.headers.get('token')
+    try:
+        uid, token = token.split('#')
+    except Exception as e:
+        ctx['code'] = -1
+        ctx['msg'] = 'token错误'
+        return jsonify(ctx)
+    member = Member.query.get(uid)
+    token1 = MemberService.geneAuthCode(member=member)
+    if token != token1:
+        ctx['code'] = -1
+        ctx['msg'] = 'token错误'
+        return jsonify(ctx)
+    # 获取从前端传来的值
+    ids = request.form.get('ids')
+    note = request.form.get("note")
+    address_id = request.form.get("address_id")
+    flag = request.form.get('flag')
+    if flag == '1':
         try:
-            uid, token = token.split('#')
+            num = int(request.form.get('num'))
         except Exception as e:
             ctx['code'] = -1
-            ctx['msg'] = 'token错误'
+            ctx['code'] = '参数错误'
             return jsonify(ctx)
-        member = Member.query.get(uid)
-        token1 = MemberService.geneAuthCode(member=member)
-        if token != token1:
-            ctx['code'] = -1
-            ctx['msg'] = 'token错误'
-            return jsonify(ctx)
-        # 获取从前端传来的值
-        ids = request.form.get('ids')
-        note = request.form.get("note")
-        address_id = request.form.get("address_id")
-        ids = json.loads(ids)
-        # 生成订单表
-        total_price = 0
-        yun_price = 0
-        pay_price = 0
+
+    ids = json.loads(ids)
+    # 生成订单表
+    total_price = 0
+    yun_price = 0
+    pay_price = 0
+    if flag == 0:
         for id in ids:
             temp = {}
             membercart = MemberCart.query.filter_by(food_id=id, member_id=member.id).first()
             food = Food.query.get(id)
             pay_price += membercart.quantity * food.price
-        total_price = pay_price + yun_price
+    else:
+        food = Food.query.get(ids)
+        pay_price += num * food.price
+    total_price = pay_price + yun_price
 
-        memberaddress = MemberAddress.query.get(address_id)
-        if not memberaddress:
+    memberaddress = MemberAddress.query.get(address_id)
+    if not memberaddress:
+        ctx['code'] = -1
+        ctx['msg'] = '参数不合法'
+        return jsonify(ctx)
+    payorder = PayOrder()
+    payorder.order_sn = geneOrderSn(PayOrder)
+    payorder.total_price = total_price  # 商品的价格和运费
+    payorder.yun_price = 0
+    payorder.pay_price = pay_price  # 购买商品的价格
+    payorder.note = note
+    payorder.status = -8
+    payorder.express_address_id = address_id
+    payorder.express_info = memberaddress.nickname + memberaddress.mobile + memberaddress.showAddress
+    payorder.member_id = member.id
+    db.session.add(payorder)
+    # ----------------------------------------------------------------------------------------------------------------------------------------->
+    foods = db.session.query(Food).filter(Food.id.in_(ids)).with_for_update().all()  # 上悲观锁
+    temp_stock = {}
+    for food in foods:
+        temp_stock[food.id] = food.stock
+
+    for id in ids:
+        try:
+            id = int(id)
+        except Exception as e:
             ctx['code'] = -1
-            ctx['msg'] = '参数不合法'
+            ctx['msg'] = '参数错误'
             return jsonify(ctx)
-        payorder = PayOrder()
-        payorder.order_sn = geneOrderSn(PayOrder)
-        payorder.total_price = total_price  # 商品的价格和运费
-        payorder.yun_price = 0
-        payorder.pay_price = pay_price  # 购买商品的价格
-        payorder.note = note
-        payorder.status = -8
-        payorder.express_address_id = address_id
-        payorder.express_info = memberaddress.nickname + memberaddress.mobile + memberaddress.showAddress
-        payorder.member_id = member.id
-        db.session.add(payorder)
-        # ----------------------------------------------------------------------------------------------------------------------------------------->
-        foods = db.session.query(Food).filter(Food.id.in_(ids)).with_for_update().all()  # 上悲观锁
-        temp_stock = {}
-        for food in foods:
-            temp_stock[food.id] = food.stock
 
-        for id in ids:
+        if flag == '1':
+
+            if num > temp_stock[int(id)]:
+                ctx['code'] = -1
+                ctx['msg'] = '库存不足'
+                return jsonify(ctx)
+
+
+        else:
             membercart = MemberCart.query.filter_by(food_id=id, member_id=member.id).first()
             if membercart.quantity > temp_stock[id]:  # 引用分控
                 ctx['code'] = -1
                 ctx['msg'] = '库存不足'
                 return jsonify(ctx)
+        if flag == '1':
+            food = db.session.query(Food).filter(Food.id == id).update({
+                'stock': temp_stock[id] - num
+            })
+        else:
             food = db.session.query(Food).filter(Food.id == id).update({
                 'stock': temp_stock[id] - membercart.quantity
             })
-            if not food:
-                ctx['code'] = -1
-                ctx['msg'] = '更新失败'
-                return jsonify(ctx)
-            food = Food.query.get(id)
-            payitem = PayOrderItem()
+        if not food:
+            ctx['code'] = -1
+            ctx['msg'] = '更新失败'
+            return jsonify(ctx)
+        food = Food.query.get(id)
+        payitem = PayOrderItem()
+        if flag == '1':
+            payitem.quantity = num
+        else:
             payitem.quantity = membercart.quantity
-            payitem.price = food.price
-            payitem.note = note
-            payitem.status = 1
-            payitem.pay_order_id = payorder.id
-            payitem.member_id = member.id
-            payitem.food_id = food.id
-            db.session.add(payitem)
 
-            # 删除购物车
+        payitem.price = food.price
+        payitem.note = note
+        payitem.status = 1
+        payitem.pay_order_id = payorder.id
+        payitem.member_id = member.id
+        payitem.food_id = food.id
+        db.session.add(payitem)
+
+        # 删除购物车
+        if flag == 0:
             db.session.delete(membercart)
-        db.session.commit()
+    db.session.commit()
 
-    except Exception as e:
-        print(e)
-        ctx['code'] = -1
-        ctx['msg'] = '失败'
-        db.session.rollback()
+    # except Exception as e:
+    #     print(e)
+    #     ctx['code'] = -1
+    #     ctx['msg'] = '失败'
+    #     db.session.rollback()
 
     return jsonify(ctx)
 
 
 @api.route('/list', methods=['GET'])
-def list():
+def getlist():
     ctx = {
         'code': 1,
         'msg': 'ok',
